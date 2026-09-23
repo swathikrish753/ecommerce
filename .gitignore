@@ -1,0 +1,14 @@
+# Binaries
+bin/
+*.exe
+*.out
+# Env & secrets
+.env
+*.local
+# Go
+vendor/
+# Editor / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
