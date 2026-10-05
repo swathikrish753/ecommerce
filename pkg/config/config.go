@@ -8,30 +8,32 @@ import (
 )
 
 // Config holds settings common to every service, loaded via Viper.
-// Each service can embed this and add its own fields (DB URLs, etc.).
 type Config struct {
-	ServiceName string // ECOM_SERVICE_NAME
-	Env         string // ECOM_ENV  (dev|staging|prod)
-	HTTPPort    int    // ECOM_HTTP_PORT
-	LogLevel    string // ECOM_LOG_LEVEL (debug|info|warn|error)
+	ServiceName   string // ECOM_SERVICE_NAME
+	Env           string // ECOM_ENV  (dev|staging|prod)
+	HTTPPort      int    // ECOM_HTTP_PORT
+	LogLevel      string // ECOM_LOG_LEVEL
+	DBDSN         string // ECOM_DB_DSN
+	JWTSecret     string // ECOM_JWT_SECRET
+	JWTTTLMinutes int    // ECOM_JWT_TTL_MINUTES
 }
 
 // Load reads configuration with precedence: env vars > config file > defaults.
 func Load() (*Config, error) {
 	v := viper.New()
 
-	// defaults
 	v.SetDefault("service_name", "service")
 	v.SetDefault("env", "dev")
 	v.SetDefault("http_port", 8080)
 	v.SetDefault("log_level", "info")
+	v.SetDefault("db_dsn", "postgres://ecom:ecom_pass@localhost:5432/ecom_auth?sslmode=disable")
+	v.SetDefault("jwt_secret", "dev-secret-change-me")
+	v.SetDefault("jwt_ttl_minutes", 60)
 
-	// environment variables: key http_port -> ECOM_HTTP_PORT
 	v.SetEnvPrefix("ECOM")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	// optional config file (merged if found, ignored if absent)
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
@@ -43,10 +45,13 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		ServiceName: v.GetString("service_name"),
-		Env:         v.GetString("env"),
-		HTTPPort:    v.GetInt("http_port"),
-		LogLevel:    v.GetString("log_level"),
+		ServiceName:   v.GetString("service_name"),
+		Env:           v.GetString("env"),
+		HTTPPort:      v.GetInt("http_port"),
+		LogLevel:      v.GetString("log_level"),
+		DBDSN:         v.GetString("db_dsn"),
+		JWTSecret:     v.GetString("jwt_secret"),
+		JWTTTLMinutes: v.GetInt("jwt_ttl_minutes"),
 	}
 	return cfg, nil
 }

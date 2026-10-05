@@ -17,3 +17,17 @@ lint:
 
 docker-auth:
 	docker build -f services/auth/Dockerfile -t ecommerce/auth:dev .
+
+.PHONY: db-up db-down migrate-up migrate-down
+
+db-up:
+	docker compose -f deploy/docker/docker-compose.yml up -d
+
+db-down:
+	docker compose -f deploy/docker/docker-compose.yml down
+
+migrate-up:
+	migrate -path services/auth/migrations -database "$(ECOM_DB_DSN)" up
+
+migrate-down:
+	migrate -path services/auth/migrations -database "$(ECOM_DB_DSN)" down

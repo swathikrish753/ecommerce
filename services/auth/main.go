@@ -1,30 +1,49 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/swathikrish753/ecommerce/pkg/config"
 	"github.com/swathikrish753/ecommerce/pkg/httpserver"
 	"github.com/swathikrish753/ecommerce/pkg/logger"
+	"github.com/swathikrish753/ecommerce/pkg/postgres"
+	"github.com/swathikrish753/ecommerce/services/auth/internal/handler"
+	"github.com/swathikrish753/ecommerce/services/auth/internal/repository"
+	"github.com/swathikrish753/ecommerce/services/auth/internal/service"
 )
 
 func main() {
-	// 1. Load configuration from the environment (Viper).
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
 
-	// 2. Build a structured logger.
 	log := logger.New(cfg.ServiceName, cfg.LogLevel, cfg.IsProd())
 	log.WithField("env", cfg.Env).Info("starting auth service")
 
-	// 3. Build the HTTP server.
 	srv := httpserver.New(cfg.HTTPPort, log)
 
-	// 4. Mark ready. (From Day 3 we flip this true only AFTER the DB
-	//    connection succeeds — for now there are no deps, so ready now.)
+	ctx := context.Background()
+	pool, err := postgres.New(ctx, postgres.Config{
+		DSN:             cfg.DBDSN,
+		MaxConns:        10,
+		MaxConnLifetime: time.Hour,
+	})
+	if err != nil {
+		log.WithError(err).Fatal("could not connect to postgres")
+	}
+	defer pool.Close()
+	log.Info("connected to postgres")
+
+	userRepo := repository.NewUserPostgres(pool)
+	authSvc := service.NewAuth(userRepo, cfg.JWTSecret,
+		time.Duration(cfg.JWTTTLMinutes)*time.Minute)
+	authHandler := handler.NewAuthHandler(authSvc)
+	authHandler.Register(srv.Echo)
+
 	srv.SetReady(true)
 
-	// 5. Run until a shutdown signal, then drain gracefully.
 	if err := srv.Run(); err != nil {
 		log.WithError(err).Fatal("server exited with error")
 	}
