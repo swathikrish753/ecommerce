@@ -7,18 +7,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config holds settings common to every service, loaded via Viper.
 type Config struct {
 	ServiceName   string // ECOM_SERVICE_NAME
-	Env           string // ECOM_ENV  (dev|staging|prod)
+	Env           string // ECOM_ENV
 	HTTPPort      int    // ECOM_HTTP_PORT
 	LogLevel      string // ECOM_LOG_LEVEL
 	DBDSN         string // ECOM_DB_DSN
 	JWTSecret     string // ECOM_JWT_SECRET
 	JWTTTLMinutes int    // ECOM_JWT_TTL_MINUTES
+	MongoURI      string // ECOM_MONGO_URI
+	MongoDB       string // ECOM_MONGO_DB
 }
 
-// Load reads configuration with precedence: env vars > config file > defaults.
 func Load() (*Config, error) {
 	v := viper.New()
 
@@ -29,6 +29,8 @@ func Load() (*Config, error) {
 	v.SetDefault("db_dsn", "postgres://ecom:ecom_pass@localhost:5432/ecom_auth?sslmode=disable")
 	v.SetDefault("jwt_secret", "dev-secret-change-me")
 	v.SetDefault("jwt_ttl_minutes", 60)
+	v.SetDefault("mongo_uri", "mongodb://ecom:ecom_pass@localhost:27017")
+	v.SetDefault("mongo_db", "ecom_catalog")
 
 	v.SetEnvPrefix("ECOM")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -52,11 +54,12 @@ func Load() (*Config, error) {
 		DBDSN:         v.GetString("db_dsn"),
 		JWTSecret:     v.GetString("jwt_secret"),
 		JWTTTLMinutes: v.GetInt("jwt_ttl_minutes"),
+		MongoURI:      v.GetString("mongo_uri"),
+		MongoDB:       v.GetString("mongo_db"),
 	}
 	return cfg, nil
 }
 
-// IsProd reports whether we are running in a production environment.
 func (c *Config) IsProd() bool {
 	return c.Env == "prod"
 }
