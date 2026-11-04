@@ -31,3 +31,8 @@ migrate-up:
 
 migrate-down:
 	migrate -path services/auth/migrations -database "$(ECOM_DB_DSN)" down
+
+.PHONY: run-catalog
+
+run-catalog:
+	ECOM_SERVICE_NAME=catalog ECOM_HTTP_PORT=8081 go run ./services/catalog
