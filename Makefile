@@ -36,3 +36,8 @@ migrate-down:
 
 run-catalog:
 	ECOM_SERVICE_NAME=catalog ECOM_HTTP_PORT=8081 go run ./services/catalog
+
+.PHONY: run-cart
+
+run-cart:
+	ECOM_SERVICE_NAME=cart ECOM_HTTP_PORT=8082 go run ./services/cart

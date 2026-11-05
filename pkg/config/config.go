@@ -17,6 +17,10 @@ type Config struct {
 	JWTTTLMinutes int    // ECOM_JWT_TTL_MINUTES
 	MongoURI      string // ECOM_MONGO_URI
 	MongoDB       string // ECOM_MONGO_DB
+	RedisAddr     string // ECOM_REDIS_ADDR
+	RedisPassword string // ECOM_REDIS_PASSWORD
+	RedisDB       int    // ECOM_REDIS_DB
+	CartTTLHours  int    // ECOM_CART_TTL_HOURS
 }
 
 func Load() (*Config, error) {
@@ -31,6 +35,10 @@ func Load() (*Config, error) {
 	v.SetDefault("jwt_ttl_minutes", 60)
 	v.SetDefault("mongo_uri", "mongodb://ecom:ecom_pass@localhost:27017")
 	v.SetDefault("mongo_db", "ecom_catalog")
+	v.SetDefault("redis_addr", "localhost:6379")
+	v.SetDefault("redis_password", "")
+	v.SetDefault("redis_db", 0)
+	v.SetDefault("cart_ttl_hours", 168)
 
 	v.SetEnvPrefix("ECOM")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -56,6 +64,10 @@ func Load() (*Config, error) {
 		JWTTTLMinutes: v.GetInt("jwt_ttl_minutes"),
 		MongoURI:      v.GetString("mongo_uri"),
 		MongoDB:       v.GetString("mongo_db"),
+		RedisAddr:     v.GetString("redis_addr"),
+		RedisPassword: v.GetString("redis_password"),
+		RedisDB:       v.GetInt("redis_db"),
+		CartTTLHours:  v.GetInt("cart_ttl_hours"),
 	}
 	return cfg, nil
 }
